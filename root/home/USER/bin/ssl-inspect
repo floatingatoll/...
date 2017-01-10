@@ -6,6 +6,11 @@ if ! hash openssl 2> /dev/null; then
     exit 1
 fi
 
+# Reopen STDIN from the filename provided on the command line, if one was provided.
+if [[ -n $1 ]]; then
+    exec 0< "$1";
+fi
+
 while read line; do
     if [ -z "$TEXT" ]; then
         if [ "$line" == "-----BEGIN CERTIFICATE-----" ]; then
@@ -19,7 +24,7 @@ while read line; do
     else
         TEXT="$TEXT$line\n"
     fi
-done < "${1:-/dev/stdin}"
+done
 
 if [ -n "$TEXT" ] && [ -n "$action" ]; then
     printf '%b' "$TEXT" | openssl $action -in /dev/stdin -noout -text
